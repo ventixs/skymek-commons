@@ -76,6 +76,12 @@ Config: **`skymek.activity.service`** (required), the service name written in ea
 `ErrorResponse.FieldError(field, message, rejectedValue)`; `fieldErrors` is never null. Exception mappers
 stay in the services.
 
+## Paging (`app.skymek.commons.paging`, since 0.4.0)
+
+`PagedResponse<T>` with `content`, `page` (from 0), `size`, `totalElements`, `totalPages`, `hasNext` and
+`hasPrevious`: `of`, `empty` (with or without a total) and `paginate`, which cuts a page out of a list in
+memory (size kept between 1 and 200, an index past the end answers the last page).
+
 ## Downstream calls (`app.skymek.commons.client`)
 
 `AuthHeadersFactory` forwards `Authorization` and `X-Support-Session` to a REST client:
