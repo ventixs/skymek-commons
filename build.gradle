@@ -14,21 +14,50 @@ java {
     withSourcesJar()
 }
 
+configurations {
+    mockitoAgent
+}
+
+def quarkusApis = [
+        'jakarta.ws.rs:jakarta.ws.rs-api',
+        'io.quarkus:quarkus-core',
+        'io.quarkus:quarkus-arc',
+        'io.quarkus:quarkus-security',
+        'io.quarkus:quarkus-vertx-http',
+        'io.quarkus:quarkus-oidc',
+        'io.quarkus:quarkus-rest',
+        'io.quarkus:quarkus-rest-client',
+        'io.quarkus:quarkus-redis-client',
+]
+
 dependencies {
     def quarkusBom = platform("io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion}")
     compileOnly quarkusBom
-    compileOnly 'jakarta.ws.rs:jakarta.ws.rs-api'
+    quarkusApis.each { compileOnly it }
 
     testImplementation quarkusBom
-    testImplementation 'jakarta.ws.rs:jakarta.ws.rs-api'
+    quarkusApis.each { testImplementation it }
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testImplementation 'org.mockito:mockito-core'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    mockitoAgent quarkusBom
+    mockitoAgent('org.mockito:mockito-core') {
+        transitive = false
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+    // Mockito can no longer self-attach on recent JDKs; loading it as an agent also skips the warning.
+    jvmArgumentProviders.add({ ["-javaagent:${configurations.mockitoAgent.asPath}", '-Xshare:off'] } as CommandLineArgumentProvider)
 }
 
 publishing {
