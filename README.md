@@ -4,13 +4,20 @@ Shared code of the SkyMek Quarkus services (ms-data, ms-workorder, ms-inventory)
 
 ## Use it
 
+Each release attaches the jar, which downloads without a token (GitHub Packages' Maven registry always asks for one):
+
 ```groovy
 repositories {
-    maven {
-        url = uri('https://maven.pkg.github.com/ventixs/skymek-commons')
-        credentials {
-            username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR') ?: 'token'
-            password = findProperty('gpr.token') ?: System.getenv('GITHUB_TOKEN')
+    ivy {
+        url = uri('https://github.com/ventixs/skymek-commons/releases/download')
+        patternLayout {
+            artifact 'v[revision]/[artifact]-[revision].[ext]'
+        }
+        metadataSources {
+            artifact()
+        }
+        content {
+            includeGroup 'app.skymek'
         }
     }
 }
@@ -19,14 +26,6 @@ dependencies {
     implementation 'app.skymek:skymek-commons:0.3.0'
 }
 ```
-
-Locally, put `gpr.token=<gh auth token>` in `~/.gradle/gradle.properties`.
-
-The jar ships `META-INF/beans.xml`, so Quarkus indexes it like application code: its beans, filters and the
-security augmentor are active as soon as the dependency is on the classpath. The service provides the
-Quarkus extensions it already uses (`quarkus-rest`, `quarkus-rest-client`, `quarkus-oidc`, `quarkus-jackson`,
-`quarkus-redis-client`); the library only compiles against them. Delete the service's own copy of a class
-when it adopts the library's, or both run.
 
 ## Support mode (`app.skymek.commons.support`)
 

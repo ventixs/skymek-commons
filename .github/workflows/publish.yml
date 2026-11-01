@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -27,3 +27,8 @@ jobs:
         run: ./gradlew publish --no-daemon -Pversion="${GITHUB_REF_NAME#v}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Attach the jar to the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: gh release create "$GITHUB_REF_NAME" build/libs/skymek-commons-"${GITHUB_REF_NAME#v}".jar --verify-tag --title "$GITHUB_REF_NAME" --notes "skymek-commons $GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
