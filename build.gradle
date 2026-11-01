@@ -28,6 +28,7 @@ def quarkusApis = [
         'io.quarkus:quarkus-rest',
         'io.quarkus:quarkus-rest-client',
         'io.quarkus:quarkus-redis-client',
+        'io.quarkus:quarkus-jackson',
 ]
 
 dependencies {
