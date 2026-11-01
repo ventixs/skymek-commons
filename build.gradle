@@ -1,0 +1,50 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+}
+
+dependencies {
+    def quarkusBom = platform("io.quarkus.platform:quarkus-bom:${quarkusPlatformVersion}")
+    compileOnly quarkusBom
+    compileOnly 'jakarta.ws.rs:jakarta.ws.rs-api'
+
+    testImplementation quarkusBom
+    testImplementation 'jakarta.ws.rs:jakarta.ws.rs-api'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+    testImplementation 'org.mockito:mockito-core'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        commons(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri('https://maven.pkg.github.com/ventixs/skymek-commons')
+            credentials {
+                username = findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR') ?: 'token'
+                password = findProperty('gpr.token') ?: System.getenv('GITHUB_TOKEN')
+            }
+        }
+    }
+}
