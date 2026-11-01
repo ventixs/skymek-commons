@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'app.skymek:skymek-commons:0.2.0'
+    implementation 'app.skymek:skymek-commons:0.3.0'
 }
 ```
 
@@ -24,7 +24,7 @@ Locally, put `gpr.token=<gh auth token>` in `~/.gradle/gradle.properties`.
 
 The jar ships `META-INF/beans.xml`, so Quarkus indexes it like application code: its beans, filters and the
 security augmentor are active as soon as the dependency is on the classpath. The service provides the
-Quarkus extensions it already uses (`quarkus-rest`, `quarkus-rest-client`, `quarkus-oidc`,
+Quarkus extensions it already uses (`quarkus-rest`, `quarkus-rest-client`, `quarkus-oidc`, `quarkus-jackson`,
 `quarkus-redis-client`); the library only compiles against them. Delete the service's own copy of a class
 when it adopts the library's, or both run.
 
@@ -81,6 +81,25 @@ stay in the services.
 
 `AuthHeadersFactory` forwards `Authorization` and `X-Support-Session` to a REST client:
 `@RegisterClientHeaders(AuthHeadersFactory.class)`.
+
+## Hybrid cache (`app.skymek.commons.cache`)
+
+`HybridCacheService` keeps an in-memory map (L1) in front of Redis (L2): `getOrCompute`, `get`, `put`,
+`invalidate`, `invalidateAll` (the cache name may end in `*`), the non-blocking `peekL1`, `getStats`
+(`CacheStats`) and `clearL1Cache`. Null values and empty collections or maps are never cached. Every Redis
+key is `<key-prefix><cacheName>:<key>`.
+
+Config:
+
+| Key | Default | |
+|---|---|---|
+| **`skymek.cache.key-prefix`** | required | for example `cache:myservice:`; changing it orphans the keys already in Redis |
+| `skymek.cache.l1.enabled` | `true` | |
+| `skymek.cache.l1.max-size` | `1000` | entries per instance |
+| `skymek.cache.l1.ttl-after-l2-hit` | `PT30M` | TTL of an L2 hit copied into L1 |
+| `skymek.cache.l2.enabled` | `true` | |
+
+The service provides the `ObjectMapper` (`quarkus-jackson`) and the Redis client.
 
 ## Release
 
